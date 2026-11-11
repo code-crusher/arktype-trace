@@ -1,0 +1,26 @@
+version: 2
+
+# Keeps the SHA-pinned actions in .github/workflows current: each bump is a PR
+# that re-pins the commit, so a moved tag is reviewed before it runs with a
+# token rather than after. npm updates run on the same schedule;
+# pnpm-workspace.yaml's minimumReleaseAge already holds new versions back a
+# day, so a hijacked release is usually pulled before it can resolve here.
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # one PR re-pinning every action, rather than one per action
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dev-dependencies:
+        dependency-type: development
+      dependencies:
+        dependency-type: production

@@ -1,0 +1,43 @@
+name: codeql
+
+# CodeQL is GitHub's static analysis engine: it reviews every push and PR to
+# main for injection, prototype pollution and the other dataflow bugs a
+# validator that parses untrusted strings at runtime has to be free of. The
+# weekly run catches a query pack update that would flag code merged before it.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "31 4 * * 1"
+
+# the analyze job gets the one write scope CodeQL needs to upload its SARIF
+# results; nothing here reads or writes the repository contents
+permissions: {}
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          languages: javascript-typescript
+          # analyse the source without running pnpm install or a workspace
+          # build, so the largest dependency tree never runs in a job that
+          # holds a write token
+          build-mode: none
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
